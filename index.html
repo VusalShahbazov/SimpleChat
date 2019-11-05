@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        .sms{
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <div class="container">
+            <div class="row" v-for="sms in messages">
+                <div class="col-md-8 md-offset-2 sms alert "  :class="classGenerate(sms.meta)" >{{sms.data}}</div>
+            </div>
+            <div class="row">
+                <div class="form-group col-8" >
+                    <input type="text" class="form-control" placeholder="Enter Message" v-model="message" @keyup.enter="send">
+                </div>
+                <div class="col-3">
+                    <input style="width: 100%;" type="submit" class="btn btn-success" value="Send" @click="send">
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+    <script>
+        var socket = io("http://localhost:4000");
+        new Vue({
+            el:"#app",
+            data :{
+                message : "",
+                messages : [] ,
+                // io : null
+            },
+            methods:{
+                send(e){
+
+                    if (this.message !== ""){
+                        this.messages.push({data:this.message , meta:1});
+                        this.message = "";
+                    }
+
+                },
+                classGenerate(meta){
+                    return {
+                        'alert-success text-center':meta === 3 ,
+                        'alert-light':meta === 2 ,
+                        'alert-secondary text-right' :meta ===1 ,
+                    }
+                }
+
+            },
+            mounted: function () {
+
+                self = this;
+                socket.on('message' , function (data) {
+                    self.messages.push({data:data.data , meta:data.meta});
+                    console.log(self.messages);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
